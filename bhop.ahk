@@ -3,7 +3,6 @@ MinDelay := 2
 MaxDelay := 13
 BaseDelay := 8
 fpsOn := false
-isJumping := false
 currentDelay := BaseDelay
 
 #MaxThreadsPerHotkey 2
@@ -19,30 +18,25 @@ JumpKey_Press:
     if (!fpsOn)
     {
         fpsOn := true
-        isJumping := true
         Random, currentDelay, MinDelay, MaxDelay
     }
     SetTimer, AutoBhop_Timer, %currentDelay%
 Return
 
 JumpKey_Release:
-    if (fpsOn)
-    {
-        fpsOn := false
-        isJumping := false
-    }
+    fpsOn := false
     SetTimer, AutoBhop_Timer, Off
 Return
 
 AutoBhop_Timer:
     if GetKeyState(JumpKey, "P")
     {
-        Send, {Space}
+        Send, {%JumpKey%}
         Random, currentDelay, MinDelay, MaxDelay
         Random, skipChance, 1, 100
         if (skipChance <= 8)
         {
-            Random, skipDelay, 12, 18
+            Random, skipDelay, 20, 40
             SetTimer, AutoBhop_Timer, %skipDelay%
             Return
         }
