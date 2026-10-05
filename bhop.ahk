@@ -1,45 +1,52 @@
-JumpKey := "Space"
-MinDelay := 2
-MaxDelay := 13
-BaseDelay := 8
-fpsOn := false
-currentDelay := BaseDelay
+#NoEnv
+#SingleInstance Force
+SendMode Input
 
-#MaxThreadsPerHotkey 2
+; Physical key that starts the macro. Plain key name, no modifiers.
+global TriggerKey := "Space"
+; Key bound to jump in CS2.
+global JumpKey := "Space"
 
-Hotkey, %JumpKey%, JumpKey_Press, On
-Hotkey, %JumpKey% Up, JumpKey_Release, On
+global MinDelay := 2
+global MaxDelay := 13
+global SkipChance := 8
+global SkipMinDelay := 20
+global SkipMaxDelay := 40
 
-WheelUp::
-WheelDown::
-    Return
+global jumping := false
 
-JumpKey_Press:
-    if (!fpsOn)
-    {
-        fpsOn := true
-        Random, currentDelay, MinDelay, MaxDelay
+Hotkey, IfWinActive, ahk_exe cs2.exe
+Hotkey, *%TriggerKey%, StartJumping
+Hotkey, *%TriggerKey% Up, StopJumping
+return
+
+StartJumping() {
+    if (jumping)
+        return ; key repeat
+    jumping := true
+    Send, {%JumpKey%}
+    ScheduleJump()
+}
+
+StopJumping() {
+    jumping := false
+    SetTimer, Jump, Off
+}
+
+Jump() {
+    if (!GetKeyState(TriggerKey, "P") || !WinActive("ahk_exe cs2.exe")) {
+        StopJumping()
+        return
     }
-    SetTimer, AutoBhop_Timer, %currentDelay%
-Return
+    Send, {%JumpKey%}
+    ScheduleJump()
+}
 
-JumpKey_Release:
-    fpsOn := false
-    SetTimer, AutoBhop_Timer, Off
-Return
-
-AutoBhop_Timer:
-    if GetKeyState(JumpKey, "P")
-    {
-        Send, {%JumpKey%}
-        Random, currentDelay, MinDelay, MaxDelay
-        Random, skipChance, 1, 100
-        if (skipChance <= 8)
-        {
-            Random, skipDelay, 20, 40
-            SetTimer, AutoBhop_Timer, %skipDelay%
-            Return
-        }
-        SetTimer, AutoBhop_Timer, %currentDelay%
-    }
-Return
+ScheduleJump() {
+    Random, roll, 1, 100
+    if (roll <= SkipChance)
+        Random, delay, SkipMinDelay, SkipMaxDelay
+    else
+        Random, delay, MinDelay, MaxDelay
+    SetTimer, Jump, %delay%
+}
